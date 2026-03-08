@@ -1,181 +1,22 @@
-Tenang, kita kerjain bareng pelan-pelan ya. Kamu sudah punya **HTML + CSS + JS**, jadi sekarang kita tinggal menambahkan **database + PHP untuk login/register** supaya tidak hardcode lagi. Aku buatkan langkah yang bisa langsung kamu ikuti di **Laragon**.
+craete database: 
 
----
-
-## 1️⃣ Buat Database
-
-Buka **Laragon → Menu → MySQL → HeidiSQL / phpMyAdmin** lalu jalankan SQL ini:
-
-```sql
-CREATE DATABASE ephone_db;
-
-USE ephone_db;
+CREATE DATABASE ephone;
+USE ephone;
 
 CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    email VARCHAR(100) NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    role ENUM('admin','user') DEFAULT 'user',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+id INT AUTO_INCREMENT PRIMARY KEY,
+email VARCHAR(100),
+password VARCHAR(255),
+role ENUM('admin','user') DEFAULT 'user'
 );
-```
 
-Tambah admin pertama:
+create user admin: 
 
-```sql
 INSERT INTO users (email,password,role)
 VALUES ('admin@ephone.com','admin123','admin');
-```
 
----
+create user for databse:
 
-## 2️⃣ Buat File Koneksi Database
-
-Buat file baru:
-
-```
-/api/db.php
-```
-
-Isi:
-
-```php
-<?php
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db   = "ephone_db";
-
-$conn = new mysqli($host,$user,$pass,$db);
-
-if ($conn->connect_error) {
-    die("Koneksi gagal: " . $conn->connect_error);
-}
-?>
-```
-
----
-
-## 3️⃣ Buat Login API
-
-File baru:
-
-```
-/api/login.php
-```
-
-```php
-<?php
-include "db.php";
-
-$email = $_POST['email'];
-$password = $_POST['password'];
-
-$sql = "SELECT * FROM users WHERE email='$email' AND password='$password'";
-$result = $conn->query($sql);
-
-if($result->num_rows > 0){
-    $user = $result->fetch_assoc();
-
-    if($user['role'] == "admin"){
-        echo "admin";
-    } else {
-        echo "user";
-    }
-
-}else{
-    echo "error";
-}
-?>
-```
-
----
-
-## 4️⃣ Ubah JavaScript Login Kamu
-
-Ganti bagian login JS menjadi:
-
-```javascript
-document.getElementById("loginForm").addEventListener("submit", function(e){
-    e.preventDefault();
-
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-
-    fetch("../api/login.php", {
-        method: "POST",
-        headers: {
-            "Content-Type":"application/x-www-form-urlencoded"
-        },
-        body: `email=${email}&password=${password}`
-    })
-    .then(res => res.text())
-    .then(data => {
-
-        if(data === "admin"){
-            alert("Login Admin Berhasil");
-            window.location.href="../Admin/dashboard.html";
-        }
-
-        else if(data === "user"){
-            alert("Login Berhasil");
-            window.location.href="../index.html";
-        }
-
-        else{
-            alert("Email atau Password salah");
-        }
-
-    });
-
-});
-```
-
----
-
-## 5️⃣ Struktur Folder yang Disarankan
-
-Supaya project kamu rapi:
-
-```
-ephone
-│
-├── index.html
-├── assets
-│
-├── Login
-│   ├── login.html
-│   └── script.js
-│
-├── Admin
-│   └── dashboard.html
-│
-└── api
-    ├── db.php
-    └── login.php
-```
-
----
-
-✅ Setelah itu:
-
-1. Jalankan **Laragon**
-2. Simpan project di folder **www**
-3. Buka di browser
-
-```
-http://localhost/ephone
-```
-
-Login sekarang sudah **pakai database**.
-
----
-
-Kalau kamu mau, aku juga bisa bantu bikin:
-
-* **register ke database**
-* **admin tambah produk HP**
-* **database produk e-commerce**
-* **keranjang belanja**
-
-Supaya project kamu bisa jadi **e-commerce HP lengkap** (dan ini bakal kelihatan keren banget buat tugas atau portofolio).
+CREATE USER 'ephoneuser'@'localhost' IDENTIFIED BY '123456';
+GRANT ALL PRIVILEGES ON ephone.* TO 'ephoneuser'@'localhost';
+FLUSH PRIVILEGES;
