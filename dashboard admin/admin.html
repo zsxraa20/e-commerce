@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - e-PHONE</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="admin.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>e-PHONE Admin</h2>
+        <div class="nav-menu">
+            <a href="#" class="nav-item active" onclick="showTab('dashboard')"><i class="fas fa-home"></i> Dashboard</a>
+            <a href="#" class="nav-item" onclick="showTab('produk')"><i class="fas fa-box"></i> Produk</a>
+            <a href="#" class="nav-item" onclick="showTab('transaksi')"><i class="fas fa-shopping-cart"></i> Transaksi</a>
+            <a href="#" class="nav-item" onclick="showTab('user')"><i class="fas fa-users"></i> Pelanggan</a>
+            <a href="#" class="nav-item" onclick="showTab('riwayat')"><i class="fas fa-history"></i> Riwayat</a>
+        </div>
+        <a href="index.html" class="nav-item logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+
+    <div class="main-content">
+        <section id="dashboard" class="tab-content active">
+            <div class="header-main">
+                <h1>Ringkasan Toko</h1>
+                <p>Halo, Admin! 👋</p>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card"><h3>Total Produk</h3><p id="stat-produk">0</p></div>
+                <div class="stat-card"><h3>Total Transaksi</h3><p id="stat-transaksi">0</p></div>
+                <div class="stat-card"><h3>Total Pengguna</h3><p id="stat-user">0</p></div>
+                <div class="stat-card" style="border-left: 5px solid #ff4444;"><h3>Stok Hampir Habis</h3><p id="stat-low">0</p></div>
+            </div>
+
+            <div class="dashboard-layout">
+                <div class="recent-orders">
+                    <h2>Pesanan Terbaru</h2>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr><th>ID Transaksi</th><th>Pembeli</th><th>Total Harga</th><th>Status</th></tr>
+                            </thead>
+                            <tbody id="table-dash-order"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="recent-orders low-stock-panel">
+                    <h2>Produk Hampir Habis</h2>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead><tr><th>Produk</th><th>Sisa Stok</th></tr></thead>
+                            <tbody id="table-dash-stock"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="produk" class="tab-content">
+            <div class="header-main">
+                <h1>Manajemen Produk</h1>
+                <button class="btn-add" onclick="openModal('modal-produk', 'tambah')">+ Tambah Produk</button>
+            </div>
+            <div class="filter-row">
+                <select><option>Semua Kategori</option></select>
+                <select><option>Semua Status</option></select>
+                <select><option>Stok Terendah</option></select>
+            </div>
+            <div class="table-wrapper main-table">
+                <table>
+                    <thead>
+                        <tr><th>foto</th></th><th>Produk</th><th>Kategori</th><th>Harga</th><th>Stok</th><th>Status</th><th>Aksi</th></tr>
+                    </thead>
+                    <tbody id="table-produk"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="transaksi" class="tab-content">
+            <h1>Manajemen Transaksi</h1>
+            <div class="filter-row">
+                <select><option>Filter Produk</option></select>
+                <select><option>Filter Status</option></select>
+            </div>
+            <div class="table-wrapper main-table">
+                <table>
+                    <thead>
+                        <tr><th>ID Pesanan</th><th>Pelanggan</th><th>Produk</th><th>Harga</th><th>Status</th><th>Aksi</th></tr>
+                    </thead>
+                    <tbody id="table-transaksi"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="user" class="tab-content">
+            <div class="header-main">
+                <h1>Manajemen User</h1>
+                <button class="btn-add" onclick="openModal('modal-user', 'tambah')">+ Tambah User</button>
+            </div>
+            <div class="table-wrapper main-table">
+                <table>
+                    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Nama</th>
+        <th>Email</th>
+        <th>Password</th> <th>Role</th>
+        <th>Status</th>
+        <th>Aksi</th>
+    </tr>
+</thead>
+<tbody id="table-user"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="riwayat" class="tab-content">
+            <h1>Riwayat Belanja</h1>
+            <div class="filter-row">
+                <input type="date">
+                <select><option>Semua Produk</option></select>
+                <select><option>Semua Status</option></select>
+            </div>
+            <div class="table-wrapper main-table">
+                <table>
+                    <thead>
+    <tr>
+        <th>ID Pesanan</th>
+        <th>Pembeli</th>
+        <th>Tanggal</th>
+        <th>Produk</th>
+        <th>Total</th>
+        <th>Aksi</th> </tr>
+</thead>
+                    <tbody id="table-riwayat"></tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <div id="modal-produk" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('modal-produk')">&times;</span>
+        <h2 id="modal-produk-title">Tambah Produk</h2>
+        
+        <form class="admin-form" id="formProduk">
+            <input type="text" id="p-nama" placeholder="Nama Produk" required>
+            <select id="p-kat">
+                <option value="C Series">C Series</option>
+                <option value="F Series">F Series</option>
+                <option value="M Series">M Series</option>
+                <option value="X Series">X Series</option>
+            </select>
+            <div class="flex-inputs">
+                <input type="number" id="p-harga" placeholder="Harga">
+                <input type="number" id="p-stok" placeholder="Stok">
+            </div>
+            
+            <textarea id="p-warna" placeholder="Ketik warna (contoh: Hitam, Putih)" oninput="generateColorUploads()"></textarea>
+            
+            <div id="variant-uploads-container" style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
+                </div>
+
+            <div class="flex-inputs">
+                <input type="text" id="p-ram" placeholder="RAM">
+                <input type="text" id="p-storage" placeholder="Storage">
+            </div>
+            <button type="button" class="btn-save" onclick="simpanProduk()">Simpan Produk</button>
+        </form>
+    </div>
+</div>
+    </div>
+
+    <div id="modal-invoice" class="modal">
+    <div class="modal-content invoice-container">
+        <span class="close" onclick="closeModal('modal-invoice')">&times;</span>
+        
+        <div id="printable-invoice" class="invoice-box">
+            <div class="invoice-header">
+                <div class="brand">
+                    <h2>e-PHONE <span>store</span></h2>
+                    <p class="address">
+                        Jl. Ki Ageng Gribig NO. 28, Madyopuro, Kec. Kedungkandang,<br>
+                        Kota Malang, Jawa Timur
+                    </p>
+                </div>
+                <h1 class="watermark">INVOICE</h1>
+            </div>
+
+            <div class="invoice-info-bar">
+                <div class="info-row"><span>Invoice</span><strong id="inv-id-text">#INV-000</strong></div>
+                <div class="info-row"><span>Date</span><strong id="inv-date">-- --- ----</strong></div>
+                <div class="info-row"><span>Status</span><span id="inv-status-label" class="badge">Lunas</span></div>
+            </div>
+
+            <table class="invoice-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody id="invoice-item-list">
+                    </tbody>
+            </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="text-right"><strong>Grand Total</strong></td>
+                        <td class="total-amount" id="inv-grand-total">Rp 0</td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div class="invoice-footer">
+                <h4>Catatan</h4>
+                <p>Terima kasih atas pembelian Anda !!</p>
+            </div>
+        </div>
+
+        <div class="invoice-actions">
+            <button onclick="downloadJPG()" class="btn-download">
+                <i class="fas fa-download"></i> Unduh PDF (JPG)
+            </button>
+            <button onclick="closeModal('modal-invoice')" class="btn-close-inv">Tutup</button>
+        </div>
+    </div>
+</div>
+
+    <div id="modal-user" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('modal-user')">&times;</span>
+        <h2 id="modal-user-title">Form Data User</h2>
+        <form class="admin-form" id="formUser">
+            <input type="text" id="u-id" placeholder="User ID">
+            <input type="text" id="u-nama" placeholder="Nama">
+            <input type="email" id="u-email" placeholder="Email">
+            <input type="password" id="u-pass" placeholder="Password"> 
+            
+            <select id="u-role">
+                <option value="Admin">Admin</option>
+                <option value="Customer">Customer</option>
+            </select>
+            
+            <select id="u-status">
+                <option value="Aktif">Aktif</option>
+                <option value="Banned">Banned</option>
+            </select>
+            
+            <button type="button" class="btn-save" onclick="simpanUser()">Simpan User</button>
+        </form>
+    </div>
+</div>
+
+<div id="modal-detail" class="modal">
+    <div class="modal-content" style="max-width: 600px; background: #fff; color: #333;">
+        <span class="close" onclick="closeModal('modal-detail')">&times;</span>
+        
+        <div id="invoice-print-area" style="padding: 20px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2 style="color: #ffd700; margin: 0;">e-PHONE</h2>
+                <p style="font-size: 12px; color: #666;">Official POCO Store - Invoice Resmi</p>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 14px;">
+                <div>
+                    <p><strong>Kepada:</strong> <span id="det-nama-cust"></span></p>
+                    <p><strong>ID Pesanan:</strong> #<span id="det-inv-id"></span></p>
+                </div>
+                <div style="text-align: right;">
+                    <p><strong>Status:</strong> <span id="det-status-label" style="color: green; font-weight: bold;"></span></p>
+                    <p id="det-waktu-selesai" style="font-size: 12px; color: #888;"></p>
+                </div>
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                <thead>
+                    <tr style="background: #f8f9fa; border-bottom: 2px solid #eee;">
+                        <th style="text-align: left; padding: 10px;">Item Produk</th>
+                        <th style="text-align: center; padding: 10px;">Qty</th>
+                        <th style="text-align: right; padding: 10px;">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody id="det-list-barang">
+                    </tbody>
+                <tfoot>
+                    <tr style="border-top: 2px solid #eee;">
+                        <td colspan="2" style="text-align: right; padding: 10px;"><strong>Total Bayar</strong></td>
+                        <td style="text-align: right; padding: 10px; font-weight: bold; color: #d4af37;" id="det-total-akhir"></td>
+                    </tr>
+                </tfoot>
+            </table>
+            
+            <p style="font-size: 10px; color: #aaa; text-align: center;">Terima kasih telah berbelanja di e-PHONE POCO Store!</p>
+        </div>
+
+        <div id="modal-action-area" style="padding: 0 20px 20px 20px;">
+            </div>
+    </div>
+</div>
+
+<div id="modal-bukti" class="modal">
+    <div class="modal-content" style="max-width: 400px; text-align: center;">
+        <span class="close" onclick="closeModal('modal-bukti')">&times;</span>
+        <h2 style="margin-bottom: 15px; font-size: 18px; color: var(--primary-color);">Bukti Pembayaran</h2>
+        <img id="img-bukti-zoom" src="" style="width: 100%; border-radius: 10px; border: 2px solid #444;">
+        <p id="nama-pelanggan-bukti" style="margin-top: 10px; font-size: 14px; color: #aaa;"></p>
+    </div>
+</div>
+    
+    <script src="admin.js"></script>
+</body>
+</html>
