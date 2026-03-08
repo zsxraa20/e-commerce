@@ -20,3 +20,7 @@ create user for databse:
 CREATE USER 'ephoneuser'@'localhost' IDENTIFIED BY '123456';
 GRANT ALL PRIVILEGES ON ephone.* TO 'ephoneuser'@'localhost';
 FLUSH PRIVILEGES;
+
+add username database:
+
+ALTER TABLE users ADD username VARCHAR(50);
