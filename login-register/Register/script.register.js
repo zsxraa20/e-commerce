@@ -1,21 +1,37 @@
-document.getElementById("registerForm").addEventListener("submit", function(e) {
-    e.preventDefault();
+document.getElementById("registerForm").addEventListener("submit", function(e){
 
-    const username = document.getElementById("username").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
-    const errorMsg = document.getElementById("errorMsg");
+e.preventDefault();
 
-    if (username === "" || email === "" || password === "") {
-        errorMsg.style.color = "red";
-        errorMsg.textContent = "Semua field harus diisi!";
-    } 
-    else if (password.length < 6) {
-        errorMsg.style.color = "red";
-        errorMsg.textContent = "Password minimal 6 karakter!";
-    } 
-    else {
-        errorMsg.style.color = "lightgreen";
-        errorMsg.textContent = "Registrasi berhasil (simulasi)";
-    }
+let username = document.getElementById("username").value;
+let email = document.getElementById("email").value;
+let password = document.getElementById("password").value;
+
+fetch("../../api/register.php",{
+
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+
+body: JSON.stringify({
+username: username,
+email: email,
+password: password
+})
+
+})
+
+.then(res => res.text())
+.then(data => {
+
+if(data === "success"){
+alert("Register berhasil!");
+window.location.href="../Login/index.html";
+}
+else{
+alert("Register gagal");
+}
+
+});
+
 });
