@@ -1,37 +1,59 @@
 document.getElementById("registerForm").addEventListener("submit", function(e){
+    e.preventDefault();
 
-e.preventDefault();
+    let username = document.getElementById("username").value.trim();
+    let email = document.getElementById("email").value.trim();
+    let password = document.getElementById("password").value;
 
-let username = document.getElementById("username").value;
-let email = document.getElementById("email").value;
-let password = document.getElementById("password").value;
+    // Basic validation
+    if (!username || !email || !password) {
+        alert("Semua field wajib diisi!");
+        return;
+    }
 
-fetch("../../api/register.php",{
+    if (username.length < 3) {
+        alert("Username minimal 3 karakter!");
+        return;
+    }
 
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
+    if (password.length < 6) {
+        alert("Password minimal 6 karakter!");
+        return;
+    }
 
-body: JSON.stringify({
-username: username,
-email: email,
-password: password
-})
+    // Show loading state
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = "Loading...";
+    submitBtn.disabled = true;
 
-})
+    fetch("../../api/register.php", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            username: username,
+            email: email,
+            password: password
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
 
-.then(res => res.text())
-.then(data => {
-
-if(data === "success"){
-alert("Register berhasil!");
-window.location.href="../Login/index.html";
-}
-else{
-alert("Register gagal");
-}
-
-});
-
+        if (data.success) {
+            alert("Register berhasil! Selamat datang, " + data.data.username);
+            window.location.href = "../../index.html";
+        } else {
+            alert(data.message || "Register gagal. Silakan coba lagi.");
+        }
+    })
+    .catch(error => {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+        alert("Terjadi kesalahan. Silakan coba lagi.");
+        console.error("Register error:", error);
+    });
 });
