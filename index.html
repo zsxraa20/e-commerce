@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>e-PHONE - Toko HP Terpercaya</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20260329-mobile-sidebar-v2">
   <script src="/_sdk/element_sdk.js"></script>
   <style>@view-transition { navigation: auto; }</style>
   <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
@@ -24,7 +24,7 @@
       <a href="login-register/Login/index.html" class="login-link">login akun</a>
      </div>
     </div>
-    <nav>
+    <nav class="desktop-nav">
      <ul>
       <li><a href="#beranda">Beranda</a></li>
       <li><a href="#produk">Produk</a></li>
@@ -32,7 +32,33 @@
       <li><a href="#tentang">Tentang</a></li>
       <li><a href="#kontak">Kontak</a></li>
      </ul>
-    </nav><button class="cart-button" id="cartBtn"> 🛒 Keranjang <span class="cart-count" id="cartCount">0</span> </button>
+    </nav>
+
+    <button class="mobile-menu-toggle" id="mobileMenuToggle" type="button" aria-expanded="false" aria-controls="mobileMenuSection" aria-label="Buka menu navigasi" title="Menu">
+      <span class="menu-icon">☰</span>
+    </button>
+
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay" aria-hidden="true"></div>
+
+    <aside class="mobile-menu-section" id="mobileMenuSection" aria-label="Sidebar Menu Navigasi Mobile">
+      <div class="mobile-sidebar-header">
+        <h3>Menu Navigasi</h3>
+        <button class="mobile-sidebar-close" id="mobileMenuClose" type="button" aria-label="Tutup menu">✕</button>
+      </div>
+      <ul>
+        <li><a href="#beranda">Beranda</a></li>
+        <li><a href="#produk">Produk</a></li>
+        <li><a href="#testimoni">Testimoni</a></li>
+        <li><a href="#tentang">Tentang</a></li>
+        <li><a href="#kontak">Kontak</a></li>
+      </ul>
+
+      <div class="sidebar-cart-wrap">
+        <button class="cart-button sidebar-cart-button" id="cartBtn">🛒 Keranjang <span class="cart-count" id="cartCount">0</span></button>
+      </div>
+    </aside>
+
+    <button class="cart-button desktop-cart-button" id="cartBtnDesktop"> 🛒 Keranjang <span class="cart-count" id="cartCountDesktop">0</span> </button>
    </div>
   </header>
 
@@ -109,20 +135,20 @@
      <h3>Profil Toko</h3>
      <p id="aboutDescription">e-PHONE SHOP adalah toko smartphone terpercaya yang telah melayani ribuan pelanggan di seluruh Indonesia. Kami menyediakan berbagai pilihan smartphone dari brand ternama dengan harga kompetitif dan garansi resmi. Komitmen kami adalah memberikan produk berkualitas tinggi dengan pelayanan terbaik untuk kepuasan pelanggan.</p>
      <h3>Mengapa Memilih Kami?</h3>
-     <ul>
-      <li>
-       ✅ Produk Original dan Bergaransi Resmi
-      </li>
-      <li>
-       ✅ Harga Kompetitif dan Transparan
-      </li>
-      <li>
-       ✅ Pelayanan Pelanggan yang Ramah dan Cepat
-      </li>
-      <li>
-       ✅ Pilihan Produk Terlengkap
-      </li>
-     </ul>
+      <ul>
+       <li>
+        Produk Original dan Bergaransi Resmi
+       </li>
+       <li>
+        Harga Kompetitif dan Transparan
+       </li>
+       <li>
+        Pelayanan Pelanggan yang Ramah dan Cepat
+       </li>
+       <li>
+        Pilihan Produk Terlengkap
+       </li>
+      </ul>
     </div>
    </section>
 
@@ -148,18 +174,41 @@
      </form>
      <div class="contact-info">
       <h3>Informasi Kontak</h3>
-      <p>
-       📍 **Alamat**: Jl. Ki Ageng Gribig No. 28, Madyopuro, Kec. Kedungkandang Kota Malang, Jawa Timur
-      </p>
-      <p>
-       📞 **Telepon**: (021) 123-4567
-      </p>
-      <p>
-       📧 **Email**: info@sijashop.com
-      </p>
-      <p>
-       ⏰ **Jam Operasional**: Senin - Jumat, 08:00 - 18:00 WIB
-      </p>
+      <p class="contact-intro">Butuh bantuan? Tim kami siap membantu Anda.</p>
+
+      <div class="contact-list">
+       <div class="contact-item">
+        <span class="contact-icon">📍</span>
+        <div class="contact-text">
+         <h4>Alamat</h4>
+         <p>Jl. Ki Ageng Gribig No. 28, Madyopuro, Kec. Kedungkandang, Kota Malang, Jawa Timur</p>
+        </div>
+       </div>
+
+       <div class="contact-item">
+        <span class="contact-icon">📞</span>
+        <div class="contact-text">
+         <h4>Telepon</h4>
+         <p><a href="tel:+62211234567">(021) 123-4567</a></p>
+        </div>
+       </div>
+
+       <div class="contact-item">
+        <span class="contact-icon">📧</span>
+        <div class="contact-text">
+         <h4>Email</h4>
+         <p><a href="mailto:info@sijashop.com">info@sijashop.com</a></p>
+        </div>
+       </div>
+
+       <div class="contact-item">
+        <span class="contact-icon">⏰</span>
+        <div class="contact-text">
+         <h4>Jam Operasional</h4>
+         <p>Senin - Jumat, 08:00 - 18:00 WIB</p>
+        </div>
+       </div>
+      </div>
      </div>
     </div>
    </section>
@@ -288,6 +337,6 @@
    <p class="detail-info">Kami akan segera menghubungi Anda untuk detail pengiriman.</p>
    <button class="close-popup-btn" onclick="document.getElementById('successPopup').classList.remove('active')">Tutup</button>
   </div>
-  <script src="script.js"></script>
+  <script src="script.js?v=20260329-mobile-sidebar-v2"></script>
  </body>
 </html>

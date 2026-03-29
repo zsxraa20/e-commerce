@@ -37,7 +37,7 @@ switch ($method) {
  */
 function getAllContacts($conn) {
     $result = $conn->query("
-        SELECT id, name, email, message, status, created_at 
+        SELECT id, name, email, message, admin_reply, replied_at, status, created_at 
         FROM contacts 
         ORDER BY id DESC
     ");
@@ -55,22 +55,46 @@ function getAllContacts($conn) {
  */
 function updateContactStatus($conn) {
     $data = json_decode(file_get_contents('php://input'), true);
-    
-    if (!isset($data['id']) || !isset($data['status'])) {
-        sendJsonResponse(false, 'Contact ID and status are required');
+
+    if (!isset($data['id'])) {
+        sendJsonResponse(false, 'Contact ID is required');
     }
-    
+
     $id = intval($data['id']);
+
+    // Reply flow: save admin reply and auto-set status to replied
+    if (isset($data['reply_message'])) {
+        $replyMessage = sanitizeInput($conn, $data['reply_message']);
+
+        if (empty(trim($replyMessage))) {
+            sendJsonResponse(false, 'Reply message is required');
+        }
+
+        $stmt = $conn->prepare("UPDATE contacts SET admin_reply = ?, status = 'replied', replied_at = NOW() WHERE id = ?");
+        $stmt->bind_param("si", $replyMessage, $id);
+
+        if ($stmt->execute()) {
+            sendJsonResponse(true, 'Contact replied successfully');
+        } else {
+            sendJsonResponse(false, 'Failed to send reply: ' . $conn->error);
+        }
+        return;
+    }
+
+    // Status-only flow
+    if (!isset($data['status'])) {
+        sendJsonResponse(false, 'Status is required');
+    }
+
     $status = sanitizeInput($conn, $data['status']);
-    
     $validStatuses = ['new', 'read', 'replied'];
     if (!in_array($status, $validStatuses)) {
         sendJsonResponse(false, 'Invalid status');
     }
-    
+
     $stmt = $conn->prepare("UPDATE contacts SET status = ? WHERE id = ?");
     $stmt->bind_param("si", $status, $id);
-    
+
     if ($stmt->execute()) {
         sendJsonResponse(true, 'Contact status updated');
     } else {

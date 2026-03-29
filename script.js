@@ -64,6 +64,73 @@ function formatPrice(price) {
     return 'Rp ' + parseInt(price).toLocaleString('id-ID');
 }
 
+/**
+ * Update status login di header + tampilkan tombol logout saat user login
+ */
+async function updateHeaderLoginStatus() {
+    const loginLink = document.querySelector('.login-link');
+    if (!loginLink) return;
+
+    const logoText = loginLink.closest('.logo-text') || loginLink.parentElement;
+    let logoutBtn = document.getElementById('headerLogoutBtn');
+
+    if (!logoutBtn && logoText) {
+        logoutBtn = document.createElement('button');
+        logoutBtn.id = 'headerLogoutBtn';
+        logoutBtn.className = 'header-logout-btn';
+        logoutBtn.type = 'button';
+        logoutBtn.textContent = 'Logout';
+        logoutBtn.style.display = 'none';
+        loginLink.insertAdjacentElement('afterend', logoutBtn);
+    }
+
+    // Default saat belum login
+    loginLink.textContent = 'Login';
+    loginLink.title = 'Masuk ke akun';
+    loginLink.href = 'login-register/Login/index.html';
+    loginLink.classList.add('auth-btn');
+
+    if (logoutBtn) {
+        logoutBtn.style.display = 'none';
+        logoutBtn.onclick = null;
+    }
+
+    try {
+        const response = await fetch('api/users.php?profile=1', {
+            method: 'GET',
+            credentials: 'same-origin'
+        });
+
+        const data = await response.json();
+
+        if (data.success && data.data?.username) {
+            const username = data.data.username;
+            loginLink.textContent = `👤 ${username}`;
+            loginLink.title = `Sedang login sebagai ${username}`;
+            loginLink.href = '#';
+            loginLink.classList.remove('auth-btn');
+
+            if (logoutBtn) {
+                logoutBtn.style.display = 'inline-flex';
+                logoutBtn.onclick = async () => {
+                    try {
+                        await fetch('api/logout.php', {
+                            method: 'POST',
+                            credentials: 'same-origin'
+                        });
+                    } catch (error) {
+                        console.error('Logout error:', error);
+                    } finally {
+                        window.location.reload();
+                    }
+                };
+            }
+        }
+    } catch (error) {
+        console.error('Gagal membaca status login:', error);
+    }
+}
+
 // Fungsi untuk merender tombol filter kategori //
 function renderSeriFilters() {
     const filterContainer = document.getElementById('seriFilter');
@@ -252,7 +319,13 @@ function showNotification(message) {
 
 function updateCartDisplay() {
     const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
-    document.getElementById('cartCount').textContent = cartCount;
+    const cartCountElements = [
+        document.getElementById('cartCount'),
+        document.getElementById('cartCountDesktop')
+    ].filter(Boolean);
+    cartCountElements.forEach(el => {
+        el.textContent = cartCount;
+    });
 
     const cartItemsContainer = document.getElementById('cartItems');
     const cartTotalElement = document.getElementById('cartTotal');
@@ -330,14 +403,31 @@ function removeItem(itemId) {
 
 function setupCartModal() {
     const cartModal = document.getElementById('cartModal');
-    const cartBtn = document.getElementById('cartBtn');
+    const cartButtons = [
+        document.getElementById('cartBtn'),
+        document.getElementById('cartBtnDesktop')
+    ].filter(Boolean);
     const closeBtn = document.getElementById('cartCloseBtn');
     const checkoutBtn = document.getElementById('checkoutBtn');
 
-    cartBtn.addEventListener('click', () => {
-        cartModal.classList.add('active');
-        updateCartDisplay();
+    cartButtons.forEach(cartBtn => {
+        cartBtn.addEventListener('click', () => {
+            const mobileSidebar = document.getElementById('mobileMenuSection');
+            const mobileOverlay = document.getElementById('mobileMenuOverlay');
+            const mobileToggle = document.getElementById('mobileMenuToggle');
+
+            if (mobileSidebar?.classList.contains('open')) {
+                mobileSidebar.classList.remove('open');
+                mobileOverlay?.classList.remove('active');
+                document.body.classList.remove('mobile-menu-open');
+                mobileToggle?.setAttribute('aria-expanded', 'false');
+            }
+
+            cartModal.classList.add('active');
+            updateCartDisplay();
+        });
     });
+
     closeBtn.addEventListener('click', closeCartModal);
     checkoutBtn.addEventListener('click', () => {
         closeCartModal();
@@ -535,6 +625,55 @@ function setupContactForm() {
     });
 }
 
+function setupMobileMenu() {
+    const toggleBtn = document.getElementById('mobileMenuToggle');
+    const menuSection = document.getElementById('mobileMenuSection');
+    const overlay = document.getElementById('mobileMenuOverlay');
+    const closeBtn = document.getElementById('mobileMenuClose');
+
+    if (!toggleBtn || !menuSection || !overlay) return;
+
+    const menuLinks = menuSection.querySelectorAll('a');
+
+    const setMenuOpen = (isOpen) => {
+        menuSection.classList.toggle('open', isOpen);
+        overlay.classList.toggle('active', isOpen);
+        document.body.classList.toggle('mobile-menu-open', isOpen);
+        toggleBtn.setAttribute('aria-expanded', String(isOpen));
+    };
+
+    toggleBtn.addEventListener('click', () => {
+        const isOpen = menuSection.classList.contains('open');
+        setMenuOpen(!isOpen);
+    });
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => setMenuOpen(false));
+    }
+
+    overlay.addEventListener('click', () => setMenuOpen(false));
+
+    menuLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                setMenuOpen(false);
+            }
+        });
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && menuSection.classList.contains('open')) {
+            setMenuOpen(false);
+        }
+    });
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) {
+            setMenuOpen(false);
+        }
+    });
+}
+
 function applyDefaultConfig() {
     document.getElementById('heroSlogan').textContent = defaultConfig.site_slogan;
     document.getElementById('aboutTitle').textContent = defaultConfig.about_title;
@@ -552,6 +691,8 @@ function applyDefaultConfig() {
 // Pemanggilan fungsi filter saat DOMContentLoaded //
 document.addEventListener('DOMContentLoaded', () => {
     applyDefaultConfig();
+    updateHeaderLoginStatus();
+    setupMobileMenu();
     renderSeriFilters(); 
     fetchProducts(); // Fetch products from API
     setupCartModal();

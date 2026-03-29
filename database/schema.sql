@@ -103,7 +103,7 @@ CREATE TABLE IF NOT EXISTS order_history (
 
 -- Insert default admin user (password: admin123)
 INSERT INTO users (username, email, password, role) VALUES 
-('admin', 'admin@ephone.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin');
+('admin', 'admin@ephone.com', '$2y$12$pvcuby/o4eP8ICM3B654r.cXW1a5Ah.vaoCtqGPFlRL.bkBRVSVaO', 'admin');
 
 -- Insert sample products (POCO Series)
 INSERT INTO products (name, series, price, specs, description, stock, status) VALUES

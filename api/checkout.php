@@ -52,20 +52,34 @@ foreach ($items as $item) {
     $price = floatval($item['price']);
     $colorName = isset($item['color_name']) ? sanitizeInput($conn, $item['color_name']) : '';
     
-    // Verify product exists and has stock
-    $stmt = $conn->prepare("SELECT name, stock FROM products WHERE id = ? AND status = 'active'");
-    $stmt->bind_param("i", $productId);
+    // Verify product exists and has stock (product-level + color-level)
+    $stmt = $conn->prepare("SELECT p.name, p.stock, pc.stock AS color_stock
+        FROM products p
+        LEFT JOIN product_colors pc ON pc.product_id = p.id AND pc.color_name = ?
+        WHERE p.id = ? AND p.status = 'active'
+        LIMIT 1");
+    $stmt->bind_param("si", $colorName, $productId);
     $stmt->execute();
     $result = $stmt->get_result();
-    
+
     if ($result->num_rows === 0) {
         sendJsonResponse(false, "Product ID $productId not found or inactive");
     }
-    
+
     $product = $result->fetch_assoc();
-    
+
     if ($product['stock'] < $quantity) {
         sendJsonResponse(false, "Insufficient stock for {$product['name']}");
+    }
+
+    if (!empty($colorName)) {
+        if ($product['color_stock'] === null) {
+            sendJsonResponse(false, "Varian warna '$colorName' tidak ditemukan untuk {$product['name']}");
+        }
+
+        if (intval($product['color_stock']) < $quantity) {
+            sendJsonResponse(false, "Insufficient stock varian $colorName untuk {$product['name']}");
+        }
     }
     
     $itemTotal = $price * $quantity;
@@ -105,15 +119,22 @@ try {
         VALUES (?, ?, ?, ?, ?, ?)");
     
     $updateStockStmt = $conn->prepare("UPDATE products SET stock = stock - ? WHERE id = ?");
+    $updateColorStockStmt = $conn->prepare("UPDATE product_colors SET stock = stock - ? WHERE product_id = ? AND color_name = ?");
     
     foreach ($validatedItems as $item) {
         // Insert item
         $stmt->bind_param("iissdi", $transactionId, $item['product_id'], $item['product_name'], $item['color_name'], $item['price'], $item['quantity']);
         $stmt->execute();
         
-        // Update stock
+        // Update product stock
         $updateStockStmt->bind_param("ii", $item['quantity'], $item['product_id']);
         $updateStockStmt->execute();
+
+        // Update color stock (if color variant exists)
+        if (!empty($item['color_name'])) {
+            $updateColorStockStmt->bind_param("iis", $item['quantity'], $item['product_id'], $item['color_name']);
+            $updateColorStockStmt->execute();
+        }
     }
     
     // Add order history

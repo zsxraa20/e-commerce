@@ -9,13 +9,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
     <!-- External CSS -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=20260329-admin-theme">
 </head>
 <body>
 
     <div class="header">
         <h1>Welcome back</h1>
-        <p>Masih belum punya akun? <a href="../Register/index.register.html"><span>Daftar.</span></a></p>
     </div>
 
     <div class="container">
@@ -41,9 +40,14 @@
                     Continue with Google
                 </button>
 
+                <p class="register-label">Masih belum punya akun?</p>
+                <a href="../Register/index.register.html" class="google-btn register-btn">Daftar</a>
+
+                <div class="error" id="errorMsg"></div>
+
                 <footer class="footer">
-            <p>&copy; 2026 e-phone. Hak cipta dilindungi undang-undang.</p>
-        </footer><div class="error" id="errorMsg"></div>
+                    <p>&copy; 2026 e-phone. Hak cipta dilindungi undang-undang.</p>
+                </footer>
             </form>
         </div>
     </div>

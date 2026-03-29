@@ -23,7 +23,7 @@ $adminName = $_SESSION['username'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - e-PHONE</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../dashboard-admin/admin.css">
+    <link rel="stylesheet" href="../dashboard-admin/admin.css?v=20260329-modern-statusgui-detail">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
@@ -31,11 +31,11 @@ $adminName = $_SESSION['username'];
     <div class="sidebar">
         <h2>e-PHONE Admin</h2>
         <div class="nav-menu">
-            <a href="#" class="nav-item active" onclick="showTab('dashboard')"><i class="fas fa-home"></i> Dashboard</a>
-            <a href="#" class="nav-item" onclick="showTab('produk')"><i class="fas fa-box"></i> Produk</a>
-            <a href="#" class="nav-item" onclick="showTab('transaksi')"><i class="fas fa-shopping-cart"></i> Transaksi</a>
-            <a href="#" class="nav-item" onclick="showTab('user')"><i class="fas fa-users"></i> Pelanggan</a>
-            <a href="#" class="nav-item" onclick="showTab('kontak')"><i class="fas fa-envelope"></i> Pesan</a>
+            <a href="#" class="nav-item active" onclick="showTab('dashboard', this)"><i class="fas fa-home"></i> Dashboard</a>
+            <a href="#" class="nav-item" onclick="showTab('produk', this)"><i class="fas fa-box"></i> Produk</a>
+            <a href="#" class="nav-item" onclick="showTab('transaksi', this)"><i class="fas fa-shopping-cart"></i> Transaksi</a>
+            <a href="#" class="nav-item" onclick="showTab('user', this)"><i class="fas fa-users"></i> Pelanggan</a>
+            <a href="#" class="nav-item" onclick="showTab('kontak', this)"><i class="fas fa-envelope"></i> Pesan</a>
         </div>
         <a href="#" class="nav-item logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
     </div>
@@ -60,7 +60,7 @@ $adminName = $_SESSION['username'];
                     <h3>Total Pengguna</h3>
                     <p id="stat-user">0</p>
                 </div>
-                <div class="stat-card" style="border-left: 5px solid #ff4444;">
+                <div class="stat-card stat-danger">
                     <h3>Stok Hampir Habis</h3>
                     <p id="stat-low">0</p>
                 </div>
@@ -194,7 +194,10 @@ $adminName = $_SESSION['username'];
                             <th>Nama</th>
                             <th>Email</th>
                             <th>Pesan</th>
+                            <th>Status</th>
+                            <th>Balasan</th>
                             <th>Tanggal</th>
+                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="table-kontak"></tbody>
@@ -251,9 +254,251 @@ $adminName = $_SESSION['username'];
         </div>
     </div>
 
+    <!-- Transaction Detail Modal -->
+    <div id="transaction-modal" class="modal" style="display: none;">
+        <div class="modal-content transaction-modal-content">
+            <span class="close" onclick="closeTransactionModal()">&times;</span>
+            <h2>Detail Transaksi <span id="detail-transaction-id"></span></h2>
+
+            <div class="transaction-meta">
+                <div class="meta-card">
+                    <small>Pelanggan</small>
+                    <strong id="detail-customer">-</strong>
+                </div>
+                <div class="meta-card">
+                    <small>Telepon</small>
+                    <strong id="detail-phone">-</strong>
+                </div>
+                <div class="meta-card">
+                    <small>Metode Bayar</small>
+                    <strong id="detail-payment">-</strong>
+                </div>
+                <div class="meta-card">
+                    <small>Status</small>
+                    <span id="detail-status" class="status-badge">-</span>
+                </div>
+                <div class="meta-card">
+                    <small>Total</small>
+                    <strong id="detail-total">-</strong>
+                </div>
+                <div class="meta-card">
+                    <small>Tanggal</small>
+                    <strong id="detail-date">-</strong>
+                </div>
+            </div>
+
+            <div class="detail-block">
+                <h3>Alamat Pengiriman</h3>
+                <p id="detail-address" class="detail-text">-</p>
+            </div>
+
+            <div class="detail-block">
+                <h3>Item Pesanan</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Produk</th>
+                                <th>Warna</th>
+                                <th>Qty</th>
+                                <th>Harga</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detail-items-body">
+                            <tr><td colspan="5" style="text-align:center;">Memuat...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="detail-block">
+                <h3>Riwayat Status</h3>
+                <ul id="detail-history" class="history-list">
+                    <li>Memuat riwayat...</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Update Modal -->
+    <div id="status-modal" class="modal" style="display: none;">
+        <div class="modal-content status-modal-content">
+            <span class="close" onclick="closeStatusModal()">&times;</span>
+            <h2>Update Status Transaksi</h2>
+            <form id="status-form">
+                <input type="hidden" id="status-transaction-id">
+
+                <div class="form-group">
+                    <label for="new-status">Pilih Status</label>
+                    <select id="new-status" required>
+                        <option value="pending">Pending</option>
+                        <option value="processing">Processing</option>
+                        <option value="shipped">Shipped</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="status-notes">Catatan (opsional)</label>
+                    <textarea id="status-notes" rows="3" placeholder="Contoh: Paket sedang diproses"></textarea>
+                </div>
+
+                <div class="status-modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeStatusModal()">Batal</button>
+                    <button type="submit" class="btn-save">Simpan Status</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reply Contact Modal -->
+    <div id="reply-modal" class="modal" style="display: none;">
+        <div class="modal-content status-modal-content">
+            <span class="close" onclick="closeReplyModal()">&times;</span>
+            <h2>Balas Pesan Kontak</h2>
+            <form id="reply-form">
+                <input type="hidden" id="reply-contact-id">
+
+                <div class="form-group">
+                    <label>Nama Pengirim</label>
+                    <input type="text" id="reply-contact-name" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="text" id="reply-contact-email" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label>Pesan Masuk</label>
+                    <textarea id="reply-contact-message" rows="4" readonly></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="reply-message">Isi Balasan</label>
+                    <textarea id="reply-message" rows="4" required placeholder="Tulis balasan untuk pelanggan..."></textarea>
+                </div>
+
+                <div class="status-modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeReplyModal()">Batal</button>
+                    <button type="submit" class="btn-save">Kirim Balasan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="admin-toast" class="admin-toast" aria-live="polite"></div>
+
     <script>
+        let transactionStatusMap = {};
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('admin-toast');
+            if (!toast) return;
+
+            toast.textContent = message;
+            toast.className = `admin-toast show ${type}`;
+
+            clearTimeout(window.__adminToastTimeout);
+            window.__adminToastTimeout = setTimeout(() => {
+                toast.className = 'admin-toast';
+            }, 2200);
+        }
+
+        function formatCurrency(value) {
+            return `Rp ${parseInt(value || 0).toLocaleString('id-ID')}`;
+        }
+
+        function formatDateTime(dateString) {
+            if (!dateString) return '-';
+            const d = new Date(dateString);
+            if (Number.isNaN(d.getTime())) return dateString;
+            return d.toLocaleString('id-ID', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+        }
+
+        function closeTransactionModal() {
+            document.getElementById('transaction-modal').style.display = 'none';
+        }
+
+        async function viewTransaction(id) {
+            const modal = document.getElementById('transaction-modal');
+            modal.style.display = 'block';
+
+            document.getElementById('detail-transaction-id').textContent = `#${id}`;
+            document.getElementById('detail-customer').textContent = 'Memuat...';
+            document.getElementById('detail-phone').textContent = '-';
+            document.getElementById('detail-payment').textContent = '-';
+            document.getElementById('detail-total').textContent = '-';
+            document.getElementById('detail-date').textContent = '-';
+            document.getElementById('detail-address').textContent = '-';
+            document.getElementById('detail-items-body').innerHTML = '<tr><td colspan="5" style="text-align:center;">Memuat detail item...</td></tr>';
+            document.getElementById('detail-history').innerHTML = '<li>Memuat riwayat...</li>';
+
+            try {
+                const response = await fetch(`../api/transactions.php?id=${id}`);
+                const data = await response.json();
+
+                if (!data.success) {
+                    showToast(data.message || 'Gagal memuat detail transaksi', 'error');
+                    return;
+                }
+
+                const t = data.data;
+                document.getElementById('detail-customer').textContent = t.customer_name || '-';
+                document.getElementById('detail-phone').textContent = t.customer_phone || '-';
+                document.getElementById('detail-payment').textContent = t.payment_method || '-';
+                document.getElementById('detail-total').textContent = formatCurrency(t.total_amount);
+                document.getElementById('detail-date').textContent = formatDateTime(t.created_at);
+                document.getElementById('detail-address').textContent = t.customer_address || '-';
+
+                const statusEl = document.getElementById('detail-status');
+                statusEl.className = `status-badge status-${t.status}`;
+                statusEl.textContent = t.status || '-';
+
+                const items = Array.isArray(t.items) ? t.items : [];
+                const itemsHtml = items.map(item => {
+                    const qty = parseInt(item.quantity || 0, 10);
+                    const price = parseInt(item.price || 0, 10);
+                    const subtotal = qty * price;
+
+                    return `
+                        <tr>
+                            <td>${item.product_name || '-'}</td>
+                            <td>${item.color_name || '-'}</td>
+                            <td>${qty}</td>
+                            <td>${formatCurrency(price)}</td>
+                            <td>${formatCurrency(subtotal)}</td>
+                        </tr>
+                    `;
+                }).join('');
+
+                document.getElementById('detail-items-body').innerHTML =
+                    itemsHtml || '<tr><td colspan="5" style="text-align:center;">Tidak ada item</td></tr>';
+
+                const history = Array.isArray(t.history) ? t.history : [];
+                const historyHtml = history.map(h => `
+                    <li>
+                        <span class="status-badge status-${h.status}">${h.status}</span>
+                        <span class="history-time">${formatDateTime(h.created_at)}</span>
+                        <div class="history-note">${h.notes || '-'}</div>
+                    </li>
+                `).join('');
+
+                document.getElementById('detail-history').innerHTML =
+                    historyHtml || '<li>Belum ada riwayat status</li>';
+            } catch (error) {
+                console.error('Error loading transaction detail:', error);
+                showToast('Terjadi kesalahan saat memuat detail', 'error');
+            }
+        }
+
         // Tab Navigation
-        function showTab(tabName) {
+        function showTab(tabName, clickedElement = null) {
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
             });
@@ -262,7 +507,7 @@ $adminName = $_SESSION['username'];
             });
             
             document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
+            if (clickedElement) clickedElement.classList.add('active');
             
             // Load data based on tab
             if (tabName === 'dashboard') loadDashboardStats();
@@ -312,10 +557,10 @@ $adminName = $_SESSION['username'];
         // Load Products
         async function loadProducts(series = '') {
             try {
-                let url = '../api/products.php';
-                if (series) url += '?series=' + series;
-                
-                const response = await fetch(url);
+                const params = new URLSearchParams({ admin: '1' });
+                if (series) params.set('series', series);
+
+                const response = await fetch(`../api/products.php?${params.toString()}`);
                 const data = await response.json();
                 
                 if (data.success) {
@@ -353,6 +598,8 @@ $adminName = $_SESSION['username'];
                 
                 if (data.success) {
                     let transactions = data.data;
+                    transactionStatusMap = Object.fromEntries(transactions.map(t => [String(t.id), t.status]));
+
                     if (status) {
                         transactions = transactions.filter(t => t.status === status);
                     }
@@ -366,7 +613,7 @@ $adminName = $_SESSION['username'];
                             <td>${new Date(t.created_at).toLocaleDateString('id-ID')}</td>
                             <td>
                                 <button class="btn-edit" onclick="viewTransaction(${t.id})">Detail</button>
-                                <button class="btn-edit" onclick="updateStatus(${t.id})">Update</button>
+                                <button class="btn-edit" onclick="updateStatus(${t.id})">Ubah Status</button>
                             </td>
                         </tr>
                     `).join('');
@@ -410,22 +657,106 @@ $adminName = $_SESSION['username'];
             try {
                 const response = await fetch('../api/contacts.php');
                 const data = await response.json();
-                
+
                 if (data.success) {
-                    const html = data.data.map(c => `
-                        <tr>
-                            <td>${c.name}</td>
-                            <td>${c.email}</td>
-                            <td>${c.message.substring(0, 50)}${c.message.length > 50 ? '...' : ''}</td>
-                            <td>${new Date(c.created_at).toLocaleDateString('id-ID')}</td>
-                        </tr>
-                    `).join('');
-                    document.getElementById('table-kontak').innerHTML = html || '<tr><td colspan="4" style="text-align: center;">Tidak ada pesan</td></tr>';
+                    const html = data.data.map(c => {
+                        const status = (c.status || 'new').toLowerCase();
+                        const statusClass = `status-${status}`;
+                        const messagePreview = `${c.message.substring(0, 60)}${c.message.length > 60 ? '...' : ''}`;
+                        const replyText = c.admin_reply || '-';
+                        const replyPreview = c.admin_reply
+                            ? `${c.admin_reply.substring(0, 60)}${c.admin_reply.length > 60 ? '...' : ''}`
+                            : '-';
+                        const repliedAt = c.replied_at ? `\n<small>${formatDateTime(c.replied_at)}</small>` : '';
+
+                        return `
+                            <tr>
+                                <td>${c.name}</td>
+                                <td>${c.email}</td>
+                                <td title="${c.message.replace(/"/g, '&quot;')}">${messagePreview}</td>
+                                <td><span class="status-badge ${statusClass}">${status}</span></td>
+                                <td title="${replyText.replace(/"/g, '&quot;')}">${replyPreview}${repliedAt}</td>
+                                <td>${new Date(c.created_at).toLocaleDateString('id-ID')}</td>
+                                <td>
+                                    <button class="btn-edit" onclick='openReplyModal(${c.id}, ${JSON.stringify(c.name)}, ${JSON.stringify(c.email)}, ${JSON.stringify(c.message)}, ${JSON.stringify(c.admin_reply || '')})'>Balas</button>
+                                    ${status === 'new' ? `<button class="btn-cancel" onclick="markContactAsRead(${c.id})">Tandai Dibaca</button>` : ''}
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                    document.getElementById('table-kontak').innerHTML = html || '<tr><td colspan="7" style="text-align: center;">Tidak ada pesan</td></tr>';
                 }
             } catch (error) {
                 console.error('Error loading contacts:', error);
             }
         }
+
+        function openReplyModal(id, name, email, message, existingReply = '') {
+            document.getElementById('reply-contact-id').value = id;
+            document.getElementById('reply-contact-name').value = name || '';
+            document.getElementById('reply-contact-email').value = email || '';
+            document.getElementById('reply-contact-message').value = message || '';
+            document.getElementById('reply-message').value = existingReply || '';
+            document.getElementById('reply-modal').style.display = 'block';
+        }
+
+        function closeReplyModal() {
+            document.getElementById('reply-modal').style.display = 'none';
+            document.getElementById('reply-form').reset();
+        }
+
+        async function markContactAsRead(id) {
+            try {
+                const response = await fetch('../api/contacts.php', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, status: 'read' })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showToast('Pesan ditandai sebagai dibaca', 'success');
+                    loadContacts();
+                } else {
+                    showToast(data.message || 'Gagal update status pesan', 'error');
+                }
+            } catch (error) {
+                console.error('Error updating contact status:', error);
+                showToast('Terjadi kesalahan saat update status pesan', 'error');
+            }
+        }
+
+        document.getElementById('reply-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const id = parseInt(document.getElementById('reply-contact-id').value, 10);
+            const reply_message = document.getElementById('reply-message').value.trim();
+
+            if (!reply_message) {
+                showToast('Balasan tidak boleh kosong', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('../api/contacts.php', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, reply_message })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    closeReplyModal();
+                    showToast('Balasan berhasil dikirim', 'success');
+                    loadContacts();
+                } else {
+                    showToast(data.message || 'Gagal mengirim balasan', 'error');
+                }
+            } catch (error) {
+                console.error('Error replying contact:', error);
+                showToast('Terjadi kesalahan saat mengirim balasan', 'error');
+            }
+        });
 
         // Product Modal
         function openProductModal(mode) {
@@ -439,6 +770,36 @@ $adminName = $_SESSION['username'];
 
         function closeProductModal() {
             document.getElementById('product-modal').style.display = 'none';
+        }
+
+        // Edit Product
+        async function editProduct(id) {
+            try {
+                const response = await fetch(`../api/products.php?id=${id}`);
+                const data = await response.json();
+
+                if (!data.success || !data.data) {
+                    alert(data.message || 'Data produk tidak ditemukan');
+                    return;
+                }
+
+                const product = data.data;
+                openProductModal('edit');
+
+                document.getElementById('product-id').value = product.id || '';
+                document.getElementById('product-name').value = product.name || '';
+                document.getElementById('product-series').value = product.series || 'C';
+                document.getElementById('product-price').value = product.price || 0;
+                document.getElementById('product-specs').value = Array.isArray(product.specs)
+                    ? product.specs.join(', ')
+                    : (product.specs || '');
+                document.getElementById('product-description').value = product.description || '';
+                document.getElementById('product-stock').value = product.stock || 0;
+                document.getElementById('product-status').value = product.status || 'active';
+            } catch (error) {
+                console.error('Error loading product detail:', error);
+                alert('Gagal memuat data produk');
+            }
         }
 
         // Product Form Submit
@@ -503,37 +864,55 @@ $adminName = $_SESSION['username'];
             }
         }
 
-        // Update Transaction Status
-        async function updateStatus(id) {
-            const statuses = ['pending', 'processing', 'shipped', 'completed', 'cancelled'];
-            const status = prompt('Pilih status baru:\n1. pending\n2. processing\n3. shipped\n4. completed\n5. cancelled');
-            
-            if (!status || status < 1 || status > 5) return;
-            
+        // Update Transaction Status (GUI Modal)
+        function updateStatus(id) {
+            const modal = document.getElementById('status-modal');
+            const idInput = document.getElementById('status-transaction-id');
+            const statusSelect = document.getElementById('new-status');
+            const notesInput = document.getElementById('status-notes');
+
+            idInput.value = id;
+            statusSelect.value = transactionStatusMap[String(id)] || 'pending';
+            notesInput.value = '';
+            modal.style.display = 'block';
+        }
+
+        function closeStatusModal() {
+            document.getElementById('status-modal').style.display = 'none';
+            document.getElementById('status-form').reset();
+        }
+
+        document.getElementById('status-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const id = parseInt(document.getElementById('status-transaction-id').value, 10);
+            const status = document.getElementById('new-status').value;
+            const notes = document.getElementById('status-notes').value.trim() || 'Status updated by admin';
+
             try {
                 const response = await fetch('../api/transactions.php', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        id: id,
-                        status: statuses[status - 1],
-                        notes: 'Status updated by admin'
-                    })
+                    body: JSON.stringify({ id, status, notes })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
-                    alert('Status berhasil diupdate!');
-                    loadTransactions();
+                    closeStatusModal();
+                    showToast('Status transaksi berhasil diupdate', 'success');
+
+                    const activeFilter = document.getElementById('filter-status')?.value || '';
+                    loadTransactions(activeFilter);
+                    loadDashboardStats();
                 } else {
-                    alert(data.message || 'Gagal update status');
+                    showToast(data.message || 'Gagal update status', 'error');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('Terjadi kesalahan');
+                showToast('Terjadi kesalahan saat update status', 'error');
             }
-        }
+        });
 
         // Logout
         async function logout() {
@@ -546,7 +925,24 @@ $adminName = $_SESSION['username'];
         }
 
         // Load initial data
-        document.addEventListener('DOMContentLoaded', loadDashboardStats);
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDashboardStats();
+
+            window.addEventListener('click', (e) => {
+                if (e.target?.id === 'transaction-modal') closeTransactionModal();
+                if (e.target?.id === 'status-modal') closeStatusModal();
+                if (e.target?.id === 'product-modal') closeProductModal();
+                if (e.target?.id === 'reply-modal') closeReplyModal();
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key !== 'Escape') return;
+                closeTransactionModal();
+                closeStatusModal();
+                closeProductModal();
+                closeReplyModal();
+            });
+        });
     </script>
 </body>
 </html>

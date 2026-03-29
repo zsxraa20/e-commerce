@@ -12,5 +12,11 @@ header('Content-Type: application/json');
 // Clear session
 clearUserSession();
 
-sendJsonResponse(true, 'Logout successful');
+// Return JSON response tanpa bergantung ke helper DB
+http_response_code(200);
+echo json_encode([
+    'success' => true,
+    'message' => 'Logout successful'
+]);
+exit;
 ?>

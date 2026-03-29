@@ -52,27 +52,40 @@ switch ($method) {
  */
 function getAllProducts($conn) {
     $series = isset($_GET['series']) ? sanitizeInput($conn, $_GET['series']) : null;
-    
-    $sql = "SELECT p.* FROM products p WHERE p.status = 'active'";
+    $isAdminRequest = isset($_GET['admin']) && $_GET['admin'] === '1';
+    $includeInactive = false;
+
+    if ($isAdminRequest) {
+        require_once '../config/session.php';
+        if (!isLoggedIn() || !isAdmin()) {
+            sendJsonResponse(false, 'Access denied. Admin only.');
+        }
+        $includeInactive = true;
+    }
+
+    $sql = "SELECT p.* FROM products p WHERE 1=1";
+    if (!$includeInactive) {
+        $sql .= " AND p.status = 'active'";
+    }
     if ($series) {
         $sql .= " AND p.series = ?";
     }
     $sql .= " ORDER BY p.id ASC";
-    
+
     $stmt = $conn->prepare($sql);
     if ($series) {
         $stmt->bind_param("s", $series);
     }
     $stmt->execute();
     $result = $stmt->get_result();
-    
+
     $products = [];
     while ($product = $result->fetch_assoc()) {
         $product['colors'] = getProductColors($conn, $product['id']);
         $product['specs'] = getProductSpecs($conn, $product['id']);
         $products[] = $product;
     }
-    
+
     sendJsonResponse(true, 'Products retrieved successfully', $products);
 }
 
