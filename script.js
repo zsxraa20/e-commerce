@@ -269,6 +269,7 @@ async function updateHeaderLoginStatus() {
     }
 
     setAuthOnlyMenuVisible(false);
+    document.body.classList.remove('is-logged-in');
 
     try {
         const response = await fetch('api/users.php?profile=1', {
@@ -285,6 +286,7 @@ async function updateHeaderLoginStatus() {
             loginLink.href = '#';
             loginLink.classList.remove('auth-btn');
             setAuthOnlyMenuVisible(true);
+            document.body.classList.add('is-logged-in');
 
             if (logoutBtn) {
                 logoutBtn.style.display = 'inline-flex';

@@ -1092,7 +1092,7 @@ main section {
 }
 
 .about-content li::before {
-    content: "âœ…";
+    content: "✅";
     line-height: 1.2;
 }
 
@@ -1768,48 +1768,3 @@ footer {
 .status-shipped { background: rgba(99, 102, 241, .18); color: #c7d2fe; border-color: rgba(99, 102, 241, .4); }
 .status-completed { background: rgba(34, 197, 94, .18); color: #86efac; border-color: rgba(34, 197, 94, .4); }
 .status-cancelled { background: rgba(239, 68, 68, .18); color: #fca5a5; border-color: rgba(239, 68, 68, .4); }
-
-/* === Header Login Layout Fix (Keep Cart On Top) === */
-@media (min-width: 769px) {
-    /* Default: keep current layout. Fix only when user sudah login
-       (menu tambahan + username/logout membuat header lebih mudah wrap). */
-
-    body.is-logged-in .logo,
-    body.is-logged-in .logo-text {
-        min-width: 0;
-    }
-
-    body.is-logged-in .logo-text a.login-link {
-        max-width: 220px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        vertical-align: bottom;
-    }
-
-    /* Saat login: keranjang tetap di baris atas, menu pindah ke baris kedua */
-    body.is-logged-in .header-container {
-        flex-wrap: wrap;
-    }
-
-    body.is-logged-in .logo {
-        order: 1;
-    }
-
-    body.is-logged-in .desktop-cart-button {
-        order: 2;
-        margin-left: auto;
-        flex-shrink: 0;
-        white-space: nowrap;
-    }
-
-    body.is-logged-in .desktop-nav {
-        order: 3;
-        flex-basis: 100%;
-    }
-
-    body.is-logged-in .desktop-nav ul {
-        justify-content: center;
-        gap: 18px 22px;
-    }
-}
