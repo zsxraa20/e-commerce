@@ -114,7 +114,6 @@ $adminName = $_SESSION['username'];
                     <option value="M">Seri M</option>
                     <option value="X">Seri X</option>
                 </select>
-                <input type="text" id="search-products" placeholder="Cari produk..." oninput="applyProductFilters()">
             </div>
             <div class="table-wrapper main-table">
                 <table>
@@ -147,7 +146,6 @@ $adminName = $_SESSION['username'];
                     <option value="completed">Completed</option>
                     <option value="cancelled">Cancelled</option>
                 </select>
-                <input type="text" id="search-transactions" placeholder="Cari transaksi..." oninput="applyTransactionFilters()">
             </div>
             <div class="table-wrapper main-table">
                 <table>
@@ -170,10 +168,6 @@ $adminName = $_SESSION['username'];
         <section id="user" class="tab-content">
             <div class="header-main">
                 <h1>Manajemen Pelanggan</h1>
-                <button class="btn-add" onclick="openUserModal('add')">+ Tambah User</button>
-            </div>
-            <div class="filter-row">
-                <input type="text" id="search-users" placeholder="Cari user..." oninput="applyUserFilters()">
             </div>
             <div class="table-wrapper main-table">
                 <table>
@@ -184,7 +178,6 @@ $adminName = $_SESSION['username'];
                             <th>Email</th>
                             <th>No. HP</th>
                             <th>Bergabung</th>
-                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="table-users"></tbody>
@@ -195,9 +188,6 @@ $adminName = $_SESSION['username'];
         <!-- Contact Messages Section -->
         <section id="kontak" class="tab-content">
             <h1>Pesan Kontak</h1>
-            <div class="filter-row">
-                <input type="text" id="search-contacts" placeholder="Cari pesan..." oninput="applyContactFilters()">
-            </div>
             <div class="table-wrapper main-table">
                 <table>
                     <thead>
@@ -271,10 +261,6 @@ $adminName = $_SESSION['username'];
             <span class="close" onclick="closeTransactionModal()">&times;</span>
             <h2>Detail Transaksi <span id="detail-transaction-id"></span></h2>
 
-            <div class="detail-actions">
-                <button type="button" class="btn-print" onclick="printCurrentInvoice()">Cetak Invoice</button>
-            </div>
-
             <div class="transaction-meta">
                 <div class="meta-card">
                     <small>Pelanggan</small>
@@ -332,78 +318,11 @@ $adminName = $_SESSION['username'];
             </div>
 
             <div class="detail-block">
-                <h3>Bukti Pembayaran</h3>
-                <div id="detail-proof-empty" class="detail-text">Tidak ada bukti pembayaran.</div>
-                <div id="detail-proof-preview" class="payment-proof-preview" style="display:none;">
-                    <img id="detail-proof-img" class="img-bukti-admin payment-proof-img" alt="Bukti pembayaran">
-                    <div class="payment-proof-actions">
-                        <button type="button" class="btn-view-bukti" onclick="openPaymentProofModal()">Lihat</button>
-                        <a id="detail-proof-download" class="btn-view-bukti" href="#" download>Download</a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="detail-block">
                 <h3>Riwayat Status</h3>
                 <ul id="detail-history" class="history-list">
                     <li>Memuat riwayat...</li>
                 </ul>
             </div>
-        </div>
-    </div>
-
-    <!-- Payment Proof Modal -->
-    <div id="payment-proof-modal" class="modal" style="display: none;">
-        <div class="modal-content status-modal-content">
-            <span class="close" onclick="closePaymentProofModal()">&times;</span>
-            <h2>Bukti Pembayaran</h2>
-            <img id="payment-proof-modal-img" class="payment-proof-modal-img" alt="Bukti pembayaran">
-            <div class="status-modal-actions">
-                <button type="button" class="btn-cancel" onclick="closePaymentProofModal()">Tutup</button>
-                <a id="payment-proof-modal-download" class="btn-save" href="#" download>Download</a>
-            </div>
-        </div>
-    </div>
-
-    <!-- User Modal -->
-    <div id="user-modal" class="modal" style="display: none;">
-        <div class="modal-content status-modal-content">
-            <span class="close" onclick="closeUserModal()">&times;</span>
-            <h2 id="user-modal-title">Tambah User</h2>
-            <form id="user-form" class="admin-form">
-                <input type="hidden" id="user-id">
-
-                <div class="form-group">
-                    <label for="user-username">Username</label>
-                    <input type="text" id="user-username" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="user-email">Email</label>
-                    <input type="email" id="user-email" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="user-phone">No. HP</label>
-                    <input type="text" id="user-phone" placeholder="08xxxxxxxxxx">
-                </div>
-
-                <div class="form-group">
-                    <label for="user-address">Alamat</label>
-                    <textarea id="user-address" rows="3" placeholder="Alamat pelanggan..."></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="user-password">Password</label>
-                    <input type="password" id="user-password" placeholder="Isi untuk set/ganti password">
-                    <small class="form-hint">Saat edit, kosongkan jika tidak ingin mengganti password.</small>
-                </div>
-
-                <div class="status-modal-actions">
-                    <button type="button" class="btn-cancel" onclick="closeUserModal()">Batal</button>
-                    <button type="submit" class="btn-save">Simpan</button>
-                </div>
-            </form>
         </div>
     </div>
 
@@ -479,13 +398,6 @@ $adminName = $_SESSION['username'];
 
     <script>
         let transactionStatusMap = {};
-        let __productsCache = [];
-        let __transactionsCache = [];
-        let __usersCache = [];
-        let __contactsCache = [];
-
-        let __currentTransactionId = null;
-        let __currentPaymentProofUrl = '';
 
         function showToast(message, type = 'success') {
             const toast = document.getElementById('admin-toast');
@@ -514,64 +426,13 @@ $adminName = $_SESSION['username'];
             });
         }
 
-        function resolveAssetUrl(path) {
-            if (!path) return '';
-            if (/^https?:\/\//i.test(path)) return path;
-            if (path.startsWith('/')) return path;
-            if (path.startsWith('../')) return path;
-            return `../${path}`;
-        }
-
-        function setPaymentProof(path) {
-            const emptyEl = document.getElementById('detail-proof-empty');
-            const previewEl = document.getElementById('detail-proof-preview');
-            const imgEl = document.getElementById('detail-proof-img');
-            const dlEl = document.getElementById('detail-proof-download');
-
-            __currentPaymentProofUrl = '';
-
-            if (!path) {
-                if (emptyEl) emptyEl.style.display = 'block';
-                if (previewEl) previewEl.style.display = 'none';
-                if (imgEl) imgEl.removeAttribute('src');
-                if (dlEl) dlEl.href = '#';
-                return;
-            }
-
-            const url = resolveAssetUrl(path);
-            __currentPaymentProofUrl = url;
-
-            if (emptyEl) emptyEl.style.display = 'none';
-            if (previewEl) previewEl.style.display = 'flex';
-            if (imgEl) imgEl.src = url;
-            if (dlEl) dlEl.href = url;
-        }
-
-        function openPaymentProofModal() {
-            if (!__currentPaymentProofUrl) return;
-            document.getElementById('payment-proof-modal-img').src = __currentPaymentProofUrl;
-            document.getElementById('payment-proof-modal-download').href = __currentPaymentProofUrl;
-            document.getElementById('payment-proof-modal').style.display = 'block';
-        }
-
-        function closePaymentProofModal() {
-            document.getElementById('payment-proof-modal').style.display = 'none';
-        }
-
-        function printCurrentInvoice() {
-            if (!__currentTransactionId) return;
-            window.open(`transactions/invoice.php?id=${__currentTransactionId}`, '_blank', 'noopener');
-        }
-
         function closeTransactionModal() {
             document.getElementById('transaction-modal').style.display = 'none';
-            __currentTransactionId = null;
         }
 
         async function viewTransaction(id) {
             const modal = document.getElementById('transaction-modal');
             modal.style.display = 'block';
-            __currentTransactionId = id;
 
             document.getElementById('detail-transaction-id').textContent = `#${id}`;
             document.getElementById('detail-customer').textContent = 'Memuat...';
@@ -583,7 +444,6 @@ $adminName = $_SESSION['username'];
             document.getElementById('detail-address').textContent = '-';
             document.getElementById('detail-items-body').innerHTML = '<tr><td colspan="5" style="text-align:center;">Memuat detail item...</td></tr>';
             document.getElementById('detail-history').innerHTML = '<li>Memuat riwayat...</li>';
-            setPaymentProof(null);
 
             try {
                 const response = await fetch(`../api/transactions.php?id=${id}`);
@@ -606,8 +466,6 @@ $adminName = $_SESSION['username'];
                 const statusEl = document.getElementById('detail-status');
                 statusEl.className = `status-badge status-${t.status}`;
                 statusEl.textContent = t.status || '-';
-
-                setPaymentProof(t.payment_proof || '');
 
                 const items = Array.isArray(t.items) ? t.items : [];
                 const itemsHtml = items.map(item => {
@@ -704,48 +562,22 @@ $adminName = $_SESSION['username'];
         }
 
         // Load Products
-        async function loadProducts() {
+        async function loadProducts(series = '') {
             try {
                 const params = new URLSearchParams({ admin: '1' });
+                if (series) params.set('series', series);
+
                 const response = await fetch(`../api/products.php?${params.toString()}`);
                 const data = await response.json();
                 
                 if (data.success) {
-                    __productsCache = Array.isArray(data.data) ? data.data : [];
-                    applyProductFilters();
-                }
-            } catch (error) {
-                console.error('Error loading products:', error);
-            }
-        }
+                    const html = data.data.map(p => {
+                        const imageUrl = p.gambar || p.colors?.[0]?.imageUrl || '../assets/images/placeholder.png';
 
-        function filterProducts() {
-            applyProductFilters();
-        }
-
-        function applyProductFilters() {
-            const series = document.getElementById('filter-series')?.value || '';
-            const query = (document.getElementById('search-products')?.value || '').trim().toLowerCase();
-
-            let list = Array.isArray(__productsCache) ? __productsCache.slice() : [];
-            if (series) {
-                list = list.filter(p => String(p.series || '').toUpperCase() === String(series).toUpperCase());
-            }
-            if (query) {
-                list = list.filter(p => {
-                    const hay = `${p.id} ${p.name || ''} ${p.series || ''} ${p.status || ''}`.toLowerCase();
-                    return hay.includes(query);
-                });
-            }
-
-            const html = list.map(p => {
-                const rawImage = p.gambar || p.colors?.[0]?.imageUrl || 'assets/images/placeholder.png';
-                const imageUrl = resolveAssetUrl(rawImage);
-
-                return `
+                        return `
                         <tr>
                             <td>${p.id}</td>
-                            <td><img src="${imageUrl}" alt="${p.name}" class="product-thumb"></td>
+                            <td><img src="../${imageUrl}" alt="${p.name}" class="product-thumb"></td>
                             <td>${p.name}</td>
                             <td>${p.series}</td>
                             <td>Rp ${parseInt(p.price).toLocaleString('id-ID')}</td>
@@ -756,21 +588,48 @@ $adminName = $_SESSION['username'];
                                 <button class="btn-delete" onclick="deleteProduct(${p.id})">Hapus</button>
                             </td>
                         </tr>
-                `;
-            }).join('');
-            document.getElementById('table-produk').innerHTML = html || '<tr><td colspan="8" style="text-align: center;">Tidak ada produk</td></tr>';
+                    `;
+                    }).join('');
+                    document.getElementById('table-produk').innerHTML = html || '<tr><td colspan="8" style="text-align: center;">Tidak ada produk</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error loading products:', error);
+            }
+        }
+
+        function filterProducts() {
+            const series = document.getElementById('filter-series').value;
+            loadProducts(series);
         }
 
         // Load Transactions
-        async function loadTransactions() {
+        async function loadTransactions(status = '') {
             try {
                 const response = await fetch('../api/transactions.php');
                 const data = await response.json();
                 
                 if (data.success) {
-                    __transactionsCache = Array.isArray(data.data) ? data.data : [];
-                    transactionStatusMap = Object.fromEntries(__transactionsCache.map(t => [String(t.id), t.status]));
-                    applyTransactionFilters();
+                    let transactions = data.data;
+                    transactionStatusMap = Object.fromEntries(transactions.map(t => [String(t.id), t.status]));
+
+                    if (status) {
+                        transactions = transactions.filter(t => t.status === status);
+                    }
+                    
+                    const html = transactions.map(t => `
+                        <tr>
+                            <td>#${t.id}</td>
+                            <td>${t.customer_name}</td>
+                            <td>Rp ${parseInt(t.total_amount).toLocaleString('id-ID')}</td>
+                            <td><span class="status-badge status-${t.status}">${t.status}</span></td>
+                            <td>${new Date(t.created_at).toLocaleDateString('id-ID')}</td>
+                            <td>
+                                <button class="btn-edit" onclick="viewTransaction(${t.id})">Detail</button>
+                                <button class="btn-edit" onclick="updateStatus(${t.id})">Ubah Status</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                    document.getElementById('table-transaksi').innerHTML = html || '<tr><td colspan="6" style="text-align: center;">Tidak ada transaksi</td></tr>';
                 }
             } catch (error) {
                 console.error('Error loading transactions:', error);
@@ -778,36 +637,8 @@ $adminName = $_SESSION['username'];
         }
 
         function filterTransactions() {
-            applyTransactionFilters();
-        }
-
-        function applyTransactionFilters() {
-            const status = document.getElementById('filter-status')?.value || '';
-            const query = (document.getElementById('search-transactions')?.value || '').trim().toLowerCase();
-
-            let list = Array.isArray(__transactionsCache) ? __transactionsCache.slice() : [];
-            if (status) list = list.filter(t => t.status === status);
-            if (query) {
-                list = list.filter(t => {
-                    const hay = `${t.id} ${t.customer_name || ''} ${t.status || ''} ${t.payment_method || ''}`.toLowerCase();
-                    return hay.includes(query);
-                });
-            }
-
-            const html = list.map(t => `
-                    <tr>
-                        <td>#${t.id}</td>
-                        <td>${t.customer_name}</td>
-                        <td>Rp ${parseInt(t.total_amount).toLocaleString('id-ID')}</td>
-                        <td><span class="status-badge status-${t.status}">${t.status}</span></td>
-                        <td>${new Date(t.created_at).toLocaleDateString('id-ID')}</td>
-                        <td>
-                            <button class="btn-edit" onclick="viewTransaction(${t.id})">Detail</button>
-                            <button class="btn-edit" onclick="updateStatus(${t.id})">Ubah Status</button>
-                        </td>
-                    </tr>
-            `).join('');
-            document.getElementById('table-transaksi').innerHTML = html || '<tr><td colspan="6" style="text-align: center;">Tidak ada transaksi</td></tr>';
+            const status = document.getElementById('filter-status').value;
+            loadTransactions(status);
         }
 
         // Load Users
@@ -817,37 +648,20 @@ $adminName = $_SESSION['username'];
                 const data = await response.json();
                 
                 if (data.success) {
-                    __usersCache = Array.isArray(data.data) ? data.data : [];
-                    applyUserFilters();
+                    const html = data.data.map(u => `
+                        <tr>
+                            <td>${u.id}</td>
+                            <td>${u.username}</td>
+                            <td>${u.email}</td>
+                            <td>${u.phone || '-'}</td>
+                            <td>${new Date(u.created_at).toLocaleDateString('id-ID')}</td>
+                        </tr>
+                    `).join('');
+                    document.getElementById('table-users').innerHTML = html || '<tr><td colspan="5" style="text-align: center;">Tidak ada pengguna</td></tr>';
                 }
             } catch (error) {
                 console.error('Error loading users:', error);
             }
-        }
-
-        function applyUserFilters() {
-            const query = (document.getElementById('search-users')?.value || '').trim().toLowerCase();
-            let list = Array.isArray(__usersCache) ? __usersCache.slice() : [];
-            if (query) {
-                list = list.filter(u => {
-                    const hay = `${u.id} ${u.username || ''} ${u.email || ''} ${u.phone || ''}`.toLowerCase();
-                    return hay.includes(query);
-                });
-            }
-
-            const html = list.map(u => `
-                    <tr>
-                        <td>${u.id}</td>
-                        <td>${u.username}</td>
-                        <td>${u.email}</td>
-                        <td>${u.phone || '-'}</td>
-                        <td>${new Date(u.created_at).toLocaleDateString('id-ID')}</td>
-                        <td>
-                            <button class="btn-edit" onclick="openUserModal('edit', ${u.id})">Edit</button>
-                        </td>
-                    </tr>
-            `).join('');
-            document.getElementById('table-users').innerHTML = html || '<tr><td colspan="6" style="text-align: center;">Tidak ada pengguna</td></tr>';
         }
 
         // Load Contacts
@@ -857,25 +671,7 @@ $adminName = $_SESSION['username'];
                 const data = await response.json();
 
                 if (data.success) {
-                    __contactsCache = Array.isArray(data.data) ? data.data : [];
-                    applyContactFilters();
-                }
-            } catch (error) {
-                console.error('Error loading contacts:', error);
-            }
-        }
-
-        function applyContactFilters() {
-            const query = (document.getElementById('search-contacts')?.value || '').trim().toLowerCase();
-            let list = Array.isArray(__contactsCache) ? __contactsCache.slice() : [];
-            if (query) {
-                list = list.filter(c => {
-                    const hay = `${c.name || ''} ${c.email || ''} ${c.message || ''} ${c.status || ''} ${(c.admin_reply || '')}`.toLowerCase();
-                    return hay.includes(query);
-                });
-            }
-
-            const html = list.map(c => {
+                    const html = data.data.map(c => {
                         const status = (c.status || 'new').toLowerCase();
                         const statusClass = `status-${status}`;
                         const messagePreview = `${c.message.substring(0, 60)}${c.message.length > 60 ? '...' : ''}`;
@@ -901,6 +697,10 @@ $adminName = $_SESSION['username'];
                         `;
                     }).join('');
                     document.getElementById('table-kontak').innerHTML = html || '<tr><td colspan="7" style="text-align: center;">Tidak ada pesan</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error loading contacts:', error);
+            }
         }
 
         function openReplyModal(id, name, email, message, existingReply = '') {
@@ -967,90 +767,6 @@ $adminName = $_SESSION['username'];
             } catch (error) {
                 console.error('Error replying contact:', error);
                 showToast('Terjadi kesalahan saat mengirim balasan', 'error');
-            }
-        });
-
-        // User Modal (Admin CRUD - minimal)
-        function openUserModal(mode = 'add', userId = null) {
-            const modal = document.getElementById('user-modal');
-            const form = document.getElementById('user-form');
-            const title = document.getElementById('user-modal-title');
-
-            form.dataset.mode = mode;
-
-            if (mode === 'edit') {
-                const user = (__usersCache || []).find(u => String(u.id) === String(userId));
-                if (!user) {
-                    showToast('User tidak ditemukan', 'error');
-                    return;
-                }
-
-                title.textContent = 'Edit User';
-                document.getElementById('user-id').value = user.id || '';
-                document.getElementById('user-username').value = user.username || '';
-                document.getElementById('user-email').value = user.email || '';
-                document.getElementById('user-phone').value = user.phone || '';
-                document.getElementById('user-address').value = user.address || '';
-                document.getElementById('user-password').value = '';
-            } else {
-                title.textContent = 'Tambah User';
-                form.reset();
-                document.getElementById('user-id').value = '';
-            }
-
-            modal.style.display = 'block';
-        }
-
-        function closeUserModal() {
-            document.getElementById('user-modal').style.display = 'none';
-            document.getElementById('user-form').reset();
-            document.getElementById('user-id').value = '';
-        }
-
-        document.getElementById('user-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            const mode = this.dataset.mode || 'add';
-            const id = parseInt(document.getElementById('user-id').value || '0', 10);
-            const username = document.getElementById('user-username').value.trim();
-            const email = document.getElementById('user-email').value.trim();
-            const phone = document.getElementById('user-phone').value.trim();
-            const address = document.getElementById('user-address').value.trim();
-            const password = document.getElementById('user-password').value;
-
-            if (!username || !email) {
-                showToast('Username dan email wajib diisi', 'error');
-                return;
-            }
-
-            if (mode === 'add' && !password) {
-                showToast('Password wajib diisi untuk user baru', 'error');
-                return;
-            }
-
-            const payload = { username, email, phone, address };
-            if (mode === 'edit') payload.id = id;
-            if (password) payload.password = password;
-
-            try {
-                const response = await fetch('../api/users.php', {
-                    method: mode === 'edit' ? 'PUT' : 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    closeUserModal();
-                    showToast('Data user berhasil disimpan', 'success');
-                    loadUsers();
-                } else {
-                    showToast(data.message || 'Gagal menyimpan user', 'error');
-                }
-            } catch (error) {
-                console.error('Error saving user:', error);
-                showToast('Terjadi kesalahan saat menyimpan user', 'error');
             }
         });
 
@@ -1198,7 +914,8 @@ $adminName = $_SESSION['username'];
                     closeStatusModal();
                     showToast('Status transaksi berhasil diupdate', 'success');
 
-                    loadTransactions();
+                    const activeFilter = document.getElementById('filter-status')?.value || '';
+                    loadTransactions(activeFilter);
                     loadDashboardStats();
                 } else {
                     showToast(data.message || 'Gagal update status', 'error');
@@ -1228,8 +945,6 @@ $adminName = $_SESSION['username'];
                 if (e.target?.id === 'status-modal') closeStatusModal();
                 if (e.target?.id === 'product-modal') closeProductModal();
                 if (e.target?.id === 'reply-modal') closeReplyModal();
-                if (e.target?.id === 'payment-proof-modal') closePaymentProofModal();
-                if (e.target?.id === 'user-modal') closeUserModal();
             });
 
             document.addEventListener('keydown', (e) => {
@@ -1238,8 +953,6 @@ $adminName = $_SESSION['username'];
                 closeStatusModal();
                 closeProductModal();
                 closeReplyModal();
-                closePaymentProofModal();
-                closeUserModal();
             });
         });
     </script>

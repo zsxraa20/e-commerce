@@ -769,40 +769,6 @@ table tbody tr:hover {
     border-color: rgba(255, 215, 0, .5);
 }
 
-.detail-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-bottom: 12px;
-}
-
-.payment-proof-preview {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.payment-proof-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.payment-proof-img {
-    width: 120px;
-    height: 90px;
-}
-
-.payment-proof-modal-img {
-    width: 100%;
-    height: auto;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: #0f1420;
-    display: block;
-}
-
 /* Invoice */
 .invoice-container {
     max-width: 650px;

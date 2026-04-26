@@ -24,10 +24,22 @@ switch ($method) {
             sendJsonResponse(false, 'Please login');
         }
         break;
+
+    case 'POST':
+        // Admin: create user (role user)
+        requireAdmin();
+        createUserAdmin($conn);
+        break;
         
     case 'PUT':
         if (isLoggedIn()) {
-            updateUser($conn);
+            // Admin can edit user by ID; regular user can update own profile (phone/address)
+            $data = json_decode(file_get_contents('php://input'), true);
+            if (isAdmin() && isset($data['id'])) {
+                updateUserAdmin($conn, $data);
+            } else {
+                updateUserProfile($conn, $data);
+            }
         } else {
             sendJsonResponse(false, 'Please login');
         }
@@ -79,10 +91,9 @@ function getUserProfile($conn) {
 }
 
 /**
- * Update user profile
+ * Update own user profile (User only: phone/address)
  */
-function updateUser($conn) {
-    $data = json_decode(file_get_contents('php://input'), true);
+function updateUserProfile($conn, $data) {
     $userId = $_SESSION['user_id'];
     
     $phone = isset($data['phone']) ? sanitizeInput($conn, $data['phone']) : '';
@@ -96,5 +107,105 @@ function updateUser($conn) {
     } else {
         sendJsonResponse(false, 'Failed to update profile: ' . $conn->error);
     }
+}
+
+/**
+ * Admin: create user (role = user)
+ */
+function createUserAdmin($conn) {
+    $data = json_decode(file_get_contents('php://input'), true);
+
+    $username = isset($data['username']) ? sanitizeInput($conn, $data['username']) : '';
+    $email = isset($data['email']) ? sanitizeInput($conn, $data['email']) : '';
+    $password = isset($data['password']) ? $data['password'] : '';
+    $phone = isset($data['phone']) ? sanitizeInput($conn, $data['phone']) : '';
+    $address = isset($data['address']) ? sanitizeInput($conn, $data['address']) : '';
+
+    if (!$username || !$email || !$password) {
+        sendJsonResponse(false, 'Username, email, dan password wajib diisi');
+    }
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        sendJsonResponse(false, 'Format email tidak valid');
+    }
+
+    // Check uniqueness
+    $checkStmt = $conn->prepare("SELECT id FROM users WHERE username = ? OR email = ? LIMIT 1");
+    $checkStmt->bind_param("ss", $username, $email);
+    $checkStmt->execute();
+    $checkRes = $checkStmt->get_result();
+    if ($checkRes->num_rows > 0) {
+        sendJsonResponse(false, 'Username atau email sudah digunakan');
+    }
+
+    $hash = password_hash($password, PASSWORD_DEFAULT);
+
+    $stmt = $conn->prepare("INSERT INTO users (username, email, password, role, phone, address) VALUES (?, ?, ?, 'user', ?, ?)");
+    $stmt->bind_param("sssss", $username, $email, $hash, $phone, $address);
+
+    if ($stmt->execute()) {
+        sendJsonResponse(true, 'User created', ['id' => $stmt->insert_id]);
+    }
+
+    sendJsonResponse(false, 'Failed to create user: ' . $conn->error);
+}
+
+/**
+ * Admin: update user by ID (role user only)
+ */
+function updateUserAdmin($conn, $data) {
+    requireAdmin();
+
+    $id = intval($data['id']);
+    if ($id <= 0) {
+        sendJsonResponse(false, 'User ID tidak valid');
+    }
+
+    $username = isset($data['username']) ? sanitizeInput($conn, $data['username']) : '';
+    $email = isset($data['email']) ? sanitizeInput($conn, $data['email']) : '';
+    $phone = isset($data['phone']) ? sanitizeInput($conn, $data['phone']) : '';
+    $address = isset($data['address']) ? sanitizeInput($conn, $data['address']) : '';
+    $password = isset($data['password']) ? $data['password'] : '';
+
+    if (!$username || !$email) {
+        sendJsonResponse(false, 'Username dan email wajib diisi');
+    }
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        sendJsonResponse(false, 'Format email tidak valid');
+    }
+
+    // Check exists and role
+    $existsStmt = $conn->prepare("SELECT id FROM users WHERE id = ? AND role = 'user' LIMIT 1");
+    $existsStmt->bind_param("i", $id);
+    $existsStmt->execute();
+    $existsRes = $existsStmt->get_result();
+    if ($existsRes->num_rows === 0) {
+        sendJsonResponse(false, 'User tidak ditemukan');
+    }
+
+    // Check uniqueness excluding current ID
+    $checkStmt = $conn->prepare("SELECT id FROM users WHERE (username = ? OR email = ?) AND id <> ? LIMIT 1");
+    $checkStmt->bind_param("ssi", $username, $email, $id);
+    $checkStmt->execute();
+    $checkRes = $checkStmt->get_result();
+    if ($checkRes->num_rows > 0) {
+        sendJsonResponse(false, 'Username atau email sudah digunakan');
+    }
+
+    if ($password) {
+        $hash = password_hash($password, PASSWORD_DEFAULT);
+        $stmt = $conn->prepare("UPDATE users SET username = ?, email = ?, phone = ?, address = ?, password = ? WHERE id = ? AND role = 'user'");
+        $stmt->bind_param("sssssi", $username, $email, $phone, $address, $hash, $id);
+    } else {
+        $stmt = $conn->prepare("UPDATE users SET username = ?, email = ?, phone = ?, address = ? WHERE id = ? AND role = 'user'");
+        $stmt->bind_param("ssssi", $username, $email, $phone, $address, $id);
+    }
+
+    if ($stmt->execute()) {
+        sendJsonResponse(true, 'User updated');
+    }
+
+    sendJsonResponse(false, 'Failed to update user: ' . $conn->error);
 }
 ?>

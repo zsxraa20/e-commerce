@@ -769,40 +769,6 @@ table tbody tr:hover {
     border-color: rgba(255, 215, 0, .5);
 }
 
-.detail-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-bottom: 12px;
-}
-
-.payment-proof-preview {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.payment-proof-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.payment-proof-img {
-    width: 120px;
-    height: 90px;
-}
-
-.payment-proof-modal-img {
-    width: 100%;
-    height: auto;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: #0f1420;
-    display: block;
-}
-
 /* Invoice */
 .invoice-container {
     max-width: 650px;
@@ -1012,47 +978,5 @@ table tbody tr:hover {
     .filter-row input {
         width: 100%;
         min-width: unset;
-    }
-}
-
-/* === Admin Form Enhancements (Product Create) === */
-.admin-form input::placeholder,
-.admin-form textarea::placeholder {
-    color: rgba(167, 175, 196, 0.75);
-}
-
-.admin-form textarea {
-    resize: vertical;
-    min-height: 110px;
-}
-
-.admin-form input[type="file"] {
-    padding: 8px 10px;
-    line-height: 1.2;
-}
-
-.admin-form input[type="file"]::file-selector-button {
-    margin-right: 10px;
-    border: 1px solid var(--border);
-    background: rgba(255, 215, 0, 0.1);
-    color: #fff;
-    padding: 8px 10px;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-.admin-form input[type="file"]::file-selector-button:hover {
-    background: rgba(255, 215, 0, 0.18);
-}
-
-@supports not selector(::file-selector-button) {
-    .admin-form input[type="file"]::-webkit-file-upload-button {
-        margin-right: 10px;
-        border: 1px solid var(--border);
-        background: rgba(255, 215, 0, 0.1);
-        color: #fff;
-        padding: 8px 10px;
-        border-radius: 8px;
-        cursor: pointer;
     }
 }

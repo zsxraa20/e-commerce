@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS products (
     specs VARCHAR(255),
     description TEXT,
     stock INT DEFAULT 0,
+    gambar VARCHAR(255),
     status ENUM('active','inactive') DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -58,6 +59,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     customer_name VARCHAR(100) NOT NULL,
     customer_phone VARCHAR(20) NOT NULL,
     customer_address TEXT NOT NULL,
+    kode_pos VARCHAR(10) NOT NULL,
     payment_method VARCHAR(50) NOT NULL,
     payment_proof VARCHAR(255),
     additional_notes TEXT,

@@ -5,7 +5,6 @@
  */
 
 require_once '../config/db.php';
-require_once '../config/session.php';
 
 // Set JSON header
 header('Content-Type: application/json');
@@ -15,29 +14,18 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     sendJsonResponse(false, 'Invalid request method');
 }
 
-// Accept JSON or multipart/form-data
+// Get input data
 $data = json_decode(file_get_contents('php://input'), true);
-if (!is_array($data) || empty($data)) {
-    // Fallback for multipart
-    $data = $_POST;
-}
 
 // Validate required fields
 $required = ['items', 'customer_name', 'customer_phone', 'customer_address', 'kode_pos', 'payment_method'];
 foreach ($required as $field) {
-    if (!isset($data[$field]) || $data[$field] === '' || $data[$field] === null) {
+    if (!isset($data[$field]) || empty($data[$field])) {
         sendJsonResponse(false, "Field '$field' is required");
     }
 }
 
 $items = $data['items'];
-if (is_string($items)) {
-    $decoded = json_decode($items, true);
-    if (json_last_error() === JSON_ERROR_NONE) {
-        $items = $decoded;
-    }
-}
-
 $customerName = sanitizeInput($conn, $data['customer_name']);
 $customerPhone = sanitizeInput($conn, $data['customer_phone']);
 $customerAddress = sanitizeInput($conn, $data['customer_address']);
@@ -45,50 +33,6 @@ $kodePos = sanitizeInput($conn, $data['kode_pos']);
 $paymentMethod = sanitizeInput($conn, $data['payment_method']);
 $additionalNotes = isset($data['additional_notes']) ? sanitizeInput($conn, $data['additional_notes']) : '';
 $paymentProof = isset($data['payment_proof']) ? sanitizeInput($conn, $data['payment_proof']) : '';
-
-// Handle payment proof upload (optional but supported)
-if (isset($_FILES['payment_proof']) || isset($_FILES['buktiPembayaran'])) {
-    $fileKey = isset($_FILES['payment_proof']) ? 'payment_proof' : 'buktiPembayaran';
-    $proof = $_FILES[$fileKey];
-
-    if ($proof && isset($proof['error']) && $proof['error'] === UPLOAD_ERR_OK) {
-        $maxSize = 2 * 1024 * 1024;
-        $allowedExtensions = ['jpg', 'jpeg', 'png'];
-        $allowedMimeTypes = ['image/jpeg', 'image/png'];
-        $extension = strtolower(pathinfo($proof['name'], PATHINFO_EXTENSION));
-
-        if ($proof['size'] > $maxSize) {
-            sendJsonResponse(false, 'Ukuran bukti pembayaran maksimal 2MB.');
-        }
-
-        if (!in_array($extension, $allowedExtensions, true)) {
-            sendJsonResponse(false, 'Format bukti pembayaran harus jpg, jpeg, atau png.');
-        }
-
-        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $mimeType = finfo_file($finfo, $proof['tmp_name']);
-        finfo_close($finfo);
-
-        if (!in_array($mimeType, $allowedMimeTypes, true)) {
-            sendJsonResponse(false, 'File bukti pembayaran bukan gambar jpg/png yang valid.');
-        }
-
-        $uploadDir = '../public/uploads/payments/';
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0777, true);
-        }
-
-        $fileName = 'pay_' . date('YmdHis') . '_' . bin2hex(random_bytes(4)) . '.' . $extension;
-        $targetPath = $uploadDir . $fileName;
-        $dbPath = 'public/uploads/payments/' . $fileName;
-
-        if (!move_uploaded_file($proof['tmp_name'], $targetPath)) {
-            sendJsonResponse(false, 'Gagal menyimpan bukti pembayaran.');
-        }
-
-        $paymentProof = $dbPath;
-    }
-}
 
 if (!preg_match('/^[0-9]{5,10}$/', $kodePos)) {
     sendJsonResponse(false, 'Kode pos wajib berupa angka minimal 5 digit dan maksimal 10 digit');

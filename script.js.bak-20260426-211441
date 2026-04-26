@@ -268,8 +268,6 @@ async function updateHeaderLoginStatus() {
         logoutBtn.onclick = null;
     }
 
-    setAuthOnlyMenuVisible(false);
-
     try {
         const response = await fetch('api/users.php?profile=1', {
             method: 'GET',
@@ -284,7 +282,6 @@ async function updateHeaderLoginStatus() {
             loginLink.title = `Sedang login sebagai ${username}`;
             loginLink.href = '#';
             loginLink.classList.remove('auth-btn');
-            setAuthOnlyMenuVisible(true);
 
             if (logoutBtn) {
                 logoutBtn.style.display = 'inline-flex';
@@ -305,104 +302,6 @@ async function updateHeaderLoginStatus() {
     } catch (error) {
         console.error('Gagal membaca status login:', error);
     }
-}
-
-function setAuthOnlyMenuVisible(isVisible) {
-    document.querySelectorAll('[data-auth-only="1"]').forEach(el => {
-        el.style.display = isVisible ? '' : 'none';
-    });
-}
-
-function openHistoryModal() {
-    const modal = document.getElementById('historyModal');
-    if (!modal) return;
-    modal.classList.add('active');
-    modal.setAttribute('aria-hidden', 'false');
-    loadPurchaseHistory();
-}
-
-function closeHistoryModal() {
-    const modal = document.getElementById('historyModal');
-    if (!modal) return;
-    modal.classList.remove('active');
-    modal.setAttribute('aria-hidden', 'true');
-}
-
-async function loadPurchaseHistory() {
-    const body = document.getElementById('purchaseHistoryBody');
-    if (!body) return;
-
-    body.innerHTML = '<tr><td colspan="4" style="text-align:center;">Memuat...</td></tr>';
-
-    try {
-        const response = await fetch('api/transactions.php', {
-            method: 'GET',
-            credentials: 'same-origin'
-        });
-
-        const data = await response.json();
-
-        if (!data.success) {
-            body.innerHTML = `<tr><td colspan="4" style="text-align:center;">${data.message || 'Gagal memuat riwayat'}</td></tr>`;
-            return;
-        }
-
-        const list = Array.isArray(data.data) ? data.data : [];
-        const rows = list.map(t => {
-            const date = t.created_at ? new Date(t.created_at).toLocaleDateString('id-ID') : '-';
-            const total = formatCurrencyIDR(parseInt(t.total_amount || 0, 10));
-            const status = (t.status || '-').toLowerCase();
-
-            return `
-                <tr>
-                    <td>#${t.id}</td>
-                    <td>${date}</td>
-                    <td>${total}</td>
-                    <td><span class="status-badge status-${status}">${status}</span></td>
-                </tr>
-            `;
-        }).join('');
-
-        body.innerHTML = rows || '<tr><td colspan="4" style="text-align:center;">Belum ada transaksi</td></tr>';
-    } catch (error) {
-        console.error('Load purchase history error:', error);
-        body.innerHTML = '<tr><td colspan="4" style="text-align:center;">Terjadi kesalahan saat memuat</td></tr>';
-    }
-}
-
-function setupPurchaseHistory() {
-    const link = document.getElementById('navHistoryLink');
-    const linkMobile = document.getElementById('navHistoryLinkMobile');
-    const closeBtn = document.getElementById('historyModalClose');
-    const modal = document.getElementById('historyModal');
-
-    if (link) {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            openHistoryModal();
-        });
-    }
-
-    if (linkMobile) {
-        linkMobile.addEventListener('click', (e) => {
-            e.preventDefault();
-            openHistoryModal();
-        });
-    }
-
-    if (closeBtn) {
-        closeBtn.addEventListener('click', closeHistoryModal);
-    }
-
-    if (modal) {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeHistoryModal();
-        });
-    }
-
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeHistoryModal();
-    });
 }
 
 // Fungsi untuk merender tombol filter kategori //
@@ -781,8 +680,6 @@ function setupCheckoutModal() {
         const kodePos = document.getElementById('kodePos').value.trim();
         const paymentMethod = document.getElementById('paymentMethod').value;
         const additionalNotes = document.getElementById('keteranganTambahan').value.trim();
-        const buktiFileInput = document.getElementById('buktiPembayaran');
-        const buktiFile = buktiFileInput?.files?.[0] || null;
         
         // Validate form
         if (!customerName || !customerPhone || !customerAddress || !kodePos || !paymentMethod) {
@@ -792,11 +689,6 @@ function setupCheckoutModal() {
 
         if (!/^[0-9]{5,10}$/.test(kodePos)) {
             alert('Kode pos wajib berupa angka minimal 5 digit dan maksimal 10 digit!');
-            return;
-        }
-
-        if (!buktiFile) {
-            alert('Mohon upload bukti pembayaran!');
             return;
         }
         
@@ -819,19 +711,20 @@ function setupCheckoutModal() {
         submitBtn.disabled = true;
         
         try {
-            const formData = new FormData();
-            formData.append('items', JSON.stringify(items));
-            formData.append('customer_name', customerName);
-            formData.append('customer_phone', customerPhone);
-            formData.append('customer_address', customerAddress);
-            formData.append('kode_pos', kodePos);
-            formData.append('payment_method', paymentMethod);
-            formData.append('additional_notes', additionalNotes);
-            formData.append('payment_proof', buktiFile);
-
             const response = await fetch('api/checkout.php', {
                 method: 'POST',
-                body: formData
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    items: items,
+                    customer_name: customerName,
+                    customer_phone: customerPhone,
+                    customer_address: customerAddress,
+                    kode_pos: kodePos,
+                    payment_method: paymentMethod,
+                    additional_notes: additionalNotes
+                })
             });
             
             const data = await response.json();
@@ -993,7 +886,6 @@ document.addEventListener('DOMContentLoaded', () => {
     applyDefaultConfig();
     updateHeaderLoginStatus();
     setupMobileMenu();
-    setupPurchaseHistory();
     renderSeriFilters(); 
     fetchProducts(); // Fetch products from API
     setupCartModal();
